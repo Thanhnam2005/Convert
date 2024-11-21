@@ -2,51 +2,78 @@
 
 import { useState } from 'react'
 import { Button } from "@/components/ui/button"
-import { Card, CardContent } from "@/components/ui/card"
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { TaiLenTep } from './tai-len-tep'
 import { TaiXuongPDF } from './tai-xuong-pdf'
-import { chuyenDoiAnhSangPdf } from '@/lib/chuyen-doi-pdf'
+import { Progress } from "@/components/ui/progress"
+import { FileIcon, ImageIcon } from 'lucide-react'
 
 export default function ChuyenDoiAnhSangPDF() {
-  //const [danhSachAnh, setDanhSachAnh] = useState<File[]>([])
+  const [danhSachAnh, setDanhSachAnh] = useState<File[]>([])
   const [urlPDF, setUrlPDF] = useState<string | null>(null)
-  const [isAnimating, setIsAnimating] = useState(false)
+  const [isConverting, setIsConverting] = useState(false)
+  const [progress, setProgress] = useState(0)
 
   const xuLyTaiLenTep = (cacTep: File[]) => {
-    //setDanhSachAnh(anhTruocDo => [...anhTruocDo, ...cacTep])
+    setDanhSachAnh(anhTruocDo => [...anhTruocDo, ...cacTep])
     setUrlPDF(null)
   }
 
   const xuLyChuyenDoi = async () => {
-    setIsAnimating(true)
+    setIsConverting(true)
+    setProgress(0)
+    
     // Simulate conversion process
-    await new Promise(resolve => setTimeout(resolve, 2000))
+    for (let i = 0; i <= 100; i += 10) {
+      setProgress(i)
+      await new Promise(resolve => setTimeout(resolve, 200))
+    }
+
     const blobPDF = new Blob(['Simulated PDF content'], { type: 'application/pdf' })
     const url = URL.createObjectURL(blobPDF)
     setUrlPDF(url)
-    setIsAnimating(false)
+    setIsConverting(false)
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-blue-100 to-white transition-all duration-500 ease-in-out">
-      <main className="container mx-auto px-4 py-8">
-        <h1 className="text-4xl font-bold text-center mb-8">Chuyển đổi ảnh sang PDF</h1>
-        <Card className="max-w-2xl mx-auto transition-all duration-500 ease-in-out transform hover:scale-105">
-          <CardContent className="p-6">
+    <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white dark:from-gray-900 dark:to-gray-800 transition-all duration-500 ease-in-out">
+      <main className="container mx-auto px-4 py-12">
+        <Card className="max-w-2xl mx-auto shadow-lg transition-all duration-500 ease-in-out transform hover:shadow-xl">
+          <CardHeader className="text-center">
+            <CardTitle className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-500 to-teal-400">Chuyển đổi ảnh sang PDF</CardTitle>
+            <CardDescription>Tải lên ảnh của bạn và chuyển đổi chúng thành tệp PDF một cách dễ dàng</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-6">
             <TaiLenTep onTaiLenTep={xuLyTaiLenTep} />
-            {/* {danhSachAnh.length > 0 && (
-              <>
-                <XemTruocAnh danhSachAnh={danhSachAnh} />
-                <Button onClick={xuLyChuyenDoi} className="w-full mt-4">
-                  Chuyển đổi sang PDF
-                </Button>
-              </>
-            )} */}
-            <div className={`mt-4 transition-all duration-500 ease-in-out ${isAnimating ? 'animate-pulse' : ''}`}>
-              <Button onClick={xuLyChuyenDoi} className="w-full" disabled={isAnimating}>
-                {isAnimating ? 'Đang chuyển đổi...' : 'Chuyển đổi sang PDF'}
+            
+            {danhSachAnh.length > 0 && (
+              <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4">
+                <h3 className="text-sm font-medium mb-2">Ảnh đã tải lên:</h3>
+                <ul className="space-y-2">
+                  {danhSachAnh.map((anh, index) => (
+                    <li key={index} className="flex items-center text-sm">
+                      <ImageIcon className="mr-2 h-4 w-4 text-blue-500" />
+                      {anh.name}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+            
+            <div className="space-y-4">
+              <Button 
+                onClick={xuLyChuyenDoi} 
+                className="w-full transition-all duration-300 ease-in-out transform hover:scale-105"
+                disabled={isConverting || danhSachAnh.length === 0}
+              >
+                {isConverting ? 'Đang chuyển đổi...' : 'Chuyển đổi sang PDF'}
               </Button>
+              
+              {isConverting && (
+                <Progress value={progress} className="w-full" />
+              )}
             </div>
+            
             {urlPDF && <TaiXuongPDF urlPDF={urlPDF} />}
           </CardContent>
         </Card>
